@@ -25,6 +25,12 @@
         limit #{offset}, #{limit}
     </select>
 
+    <select id="selectAllDiscussPosts" resultType="com.nowcoder.community.entity.DiscussPost">
+        select <include refid="selectFields"></include>
+        from discuss_post
+        order by type desc, create_time desc
+    </select>
+
     <select id="selectDiscussPostRows" resultType="int">
         select count(id)
         from discuss_post

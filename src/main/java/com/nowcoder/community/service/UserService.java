@@ -1,17 +1,21 @@
 package com.nowcoder.community.service;
 
 //import com.nowcoder.community.dao.LoginTicketMapper;
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
 
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.MailClient;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -38,10 +42,19 @@ public class UserService implements CommunityConstant {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     public User findUserById(int id) {
-        return userMapper.selectById(id);
-
+//        return userMapper.selectById(id);
+        User user = getCache(id);
+        if (user == null) {
+            user = initCache(id);
+        }
+        return user;
     }
 
     public Map<String, Object> register(User user) {
@@ -111,15 +124,15 @@ public class UserService implements CommunityConstant {
         if (user.getStatus() == 1) {
             return ACTIVATION_REPEAT;
         } else if (user.getActivationCode().equals(code)) {
-            userMapper.updateStatus(userId, 1);//更改状态，变为已激活
-            //clearCache(userId);
+            //userMapper.updateStatus(userId, 1);//更改状态，变为已激活
+            clearCache(userId);
             return ACTIVATION_SUCCESS;
         } else {
             return ACTIVATION_FAILURE;
         }
     }
 
-   /* public Map<String, Object> login(String username, String password, int expiredSeconds) {
+   public Map<String, Object> login(String username, String password, int expiredSeconds) {
         Map<String, Object> map = new HashMap<>();
 
         // 空值处理
@@ -180,7 +193,7 @@ public class UserService implements CommunityConstant {
 
     public LoginTicket findLoginTicket(String ticket) {
         String ticketKey = RedisKeyUtil.getTicketKey(ticket);
-//        return loginTicketMapper.selectByTicket(ticket);
+//       return loginTicketMapper.selectByTicket(ticket);
         return (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
     }
 
@@ -189,13 +202,12 @@ public class UserService implements CommunityConstant {
         int rows = userMapper.updateHeader(id, headerUrl);
         clearCache(id);
         return rows;
-//        return userMapper.updateHeader(id, headerUrl);
+        //return userMapper.updateHeader(id, headerUrl);
     }
 
     public User findUserByName(String username) {
         return userMapper.selectByName(username);
     }
-
     //1.优先从缓存中取值
     public User getCache(int userId) {
         String userKey = RedisKeyUtil.getUserKey(userId);
@@ -217,7 +229,7 @@ public class UserService implements CommunityConstant {
         redisTemplate.delete(userKey);
     }
 
-    *//**
+    /**
      * @Description: 根据用户类型，获得相应权限
      * @param userId
      * @return: java.util.Collection<? extends org.springframework.security.core.GrantedAuthority>

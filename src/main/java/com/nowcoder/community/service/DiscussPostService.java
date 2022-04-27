@@ -10,6 +10,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;*/
 import com.nowcoder.community.dao.DiscussPostMapper;
 import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.util.SensitiveFilter;
+import com.sun.scenario.effect.Effect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,8 @@ public class DiscussPostService {
     @Autowired
     private DiscussPostMapper discussPostMapper;
 
-
+    @Autowired
+    private SensitiveFilter sensitiveFilter;
 
     public List<DiscussPost> findDiscussPosts(int userId, int offset, int limit) {
         // 只有热门帖子(访问首页时，userId=0)
@@ -49,7 +52,7 @@ public class DiscussPostService {
         return discussPostMapper.selectDiscussPostRows(userId);
     }
 
-    /*public int addDiscussPost(DiscussPost post) {
+    public int addDiscussPost(DiscussPost post) {
         if (post == null) {
             throw new IllegalArgumentException("参数不能为空!");
         }
@@ -71,7 +74,7 @@ public class DiscussPostService {
     public int updateCommentCount(int id, int commentCount) {
         return discussPostMapper.updateCommentCount(id, commentCount);
     }
-
+/*
     public int updateType(int id, int type) {
         return discussPostMapper.updateType(id, type);
     }
