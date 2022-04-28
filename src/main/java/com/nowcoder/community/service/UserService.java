@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+/*import org.springframework.security.core.GrantedAuthority;*/
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -234,8 +235,8 @@ public class UserService implements CommunityConstant {
      * @param userId
      * @return: java.util.Collection<? extends org.springframework.security.core.GrantedAuthority>
      * @Date 2020/5/20
-     **//*
-    public Collection<? extends GrantedAuthority> getAuthorities(int userId){
+     **/
+/*    public Collection<? extends GrantedAuthority> getAuthorities(int userId){
         User user = userMapper.selectById(userId);
 
         List<GrantedAuthority> list=new ArrayList<>();

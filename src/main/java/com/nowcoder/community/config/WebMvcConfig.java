@@ -22,8 +22,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
     private MessageInterceptor messageInterceptor;
-/*
-    @Autowired
+/*    @Autowired
     private DataInterceptor dataInterceptor;*/
 
     @Override

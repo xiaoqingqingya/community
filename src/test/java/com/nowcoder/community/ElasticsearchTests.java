@@ -1,11 +1,15 @@
 package com.nowcoder.community;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.nowcoder.community.dao.DiscussPostMapper;
 //import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
 
 /*import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;*/
+//import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
+//import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
 import com.nowcoder.community.entity.DiscussPost;
+
 import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -16,6 +20,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -50,6 +55,7 @@ import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,19 +81,19 @@ public class ElasticsearchTests {
     @Autowired
     private RestHighLevelClient esClient;
 
-/*  @Autowired
-    private DiscussPostRepository discussRepository;*/
+//  @Autowired
+//    private DiscussPostRepository discussRepository;
 
 
  /*@Autowired
     private ElasticsearchTemplate elasticTemplate;*/
 
 
-    /*@Test
+/*    @Test
     public void testInsert() {
-        discussRepository.save(discussMapper.selectDiscussPostById(241));
-        discussRepository.save(discussMapper.selectDiscussPostById(242));
-        discussRepository.save(discussMapper.selectDiscussPostById(243));
+        discussRepository.save(discussMapper.selectDiscussPostById(283));
+        discussRepository.save(discussMapper.selectDiscussPostById(284));
+        discussRepository.save(discussMapper.selectDiscussPostById(285));
     }
 
  @Test
@@ -117,7 +123,7 @@ public class ElasticsearchTests {
         discussRepository.deleteAll();
     }*/
 
- /*@Test
+/* @Test
     public void testSearchByRepository() {
      NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
              .withQuery(QueryBuilders.multiMatchQuery("互联网寒冬", "title", "content"))
@@ -134,6 +140,7 @@ public class ElasticsearchTests {
         // 底层获取得到了高亮显示的值, 但是没有返回.
 
         Page<DiscussPost> page = discussRepository.search(searchQuery);
+        discussRepository.searchSimilar(searchQuery)
         System.out.println(page.getTotalElements());
         System.out.println(page.getTotalPages());
         System.out.println(page.getNumber());
@@ -166,7 +173,7 @@ public class ElasticsearchTests {
                 .sort(SortBuilders.fieldSort("type").order(SortOrder.DESC))
                 .sort(SortBuilders.fieldSort("score").order(SortOrder.DESC))
                 .sort(SortBuilders.fieldSort("createTime").order(SortOrder.DESC))
-        .from(110).size(10);
+        .from(0).size(10);
 //                .highlighter(
 //                        new HighlightBuilder.Field("content").preTags("<em>").postTags("</em>"),
 //                        new HighlightBuilder.Field("content").preTags("<em>").postTags("</em>"));
@@ -178,6 +185,7 @@ public class ElasticsearchTests {
         highlightBuilder.preTags("<font color='red'>");
         highlightBuilder.postTags("</font>");
 
+
         searchSourceBuilder.highlighter(highlightBuilder);
 
 
@@ -188,9 +196,14 @@ public class ElasticsearchTests {
         SearchHits hits = response.getHits();// getHits
 
         long totalHits = hits.getTotalHits().value;
+        for ( SearchHit hit : hits ) {
+            System.out.println(hit.getSourceAsString());
+        }
 
 
         for (SearchHit hit : hits) {
+
+
             DiscussPost post = new DiscussPost();
 
             String id = hit.getSourceAsMap().get("id").toString();
@@ -218,6 +231,8 @@ public class ElasticsearchTests {
             HighlightField titleField = hit.getHighlightFields().get("title");
             if (titleField != null) {
                 post.setTitle(titleField.getFragments()[0].toString());
+
+
             }
 
             HighlightField contentField = hit.getHighlightFields().get("content");

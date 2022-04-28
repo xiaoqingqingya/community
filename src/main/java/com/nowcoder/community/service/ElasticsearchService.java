@@ -8,7 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageInfo;
 import com.nowcoder.community.dao.DiscussPostMapper;
 
+/*import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;*/
+//import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
+import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
 import com.nowcoder.community.entity.DiscussPost;
+import javafx.scene.canvas.GraphicsContext;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -59,45 +63,42 @@ public class ElasticsearchService {
     @Autowired
     private RestHighLevelClient esClient;//restHighLevelClient
 
+    @Autowired
+    private DiscussPostRepository discussRepository;
+
+    @Autowired
+    private DiscussPostMapper discussPostMapper;
+
 
     public void saveDiscussPost(DiscussPost post) throws IOException {
 
 
 
+        discussRepository.save(post);
 
-
-
-        //discussRepository.save(post);
-        IndexRequest request = new IndexRequest();
+      /*  IndexRequest request = new IndexRequest();
         request.index("dicusspost");
-
-//        User user = new User();
-//        user.setName("zhangsan");
-//        user.setAge(30);
-//        user.setSex("男");
 
         // 向ES插入数据，必须将数据转换位JSON格式
         ObjectMapper mapper = new ObjectMapper();
         String dsJson = mapper.writeValueAsString(post);
         request.source(dsJson, XContentType.JSON);
 
-        IndexResponse response = esClient.index(request, RequestOptions.DEFAULT);
+        IndexResponse response = esClient.index(request, RequestOptions.DEFAULT);*/
     }
 
     public void deleteDiscussPost(int id) throws IOException {
-
-        //discussRepository.deleteById(id);
-        DeleteRequest request = new DeleteRequest();
+        discussRepository.deleteById(id);
+        /*DeleteRequest request = new DeleteRequest();
         request.index("discusspost").id(Integer.toString(id));
 
-        DeleteResponse response = esClient.delete(request, RequestOptions.DEFAULT);
+        DeleteResponse response = esClient.delete(request, RequestOptions.DEFAULT);*/
     }
 
     /**
      * @Description: es 搜索功能
      * @param keyword
-     * @param current 当前页，从0开始
-     * @param limit 每页数据
+
      * @return: org.springframework.data.domain.Page<com.nowcoder.community.entity.DiscussPost>
      * @Date 2020/5/19
      **/
@@ -181,14 +182,23 @@ public class ElasticsearchService {
         List<DiscussPost> list = new ArrayList<>();
         SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
         SearchHits hits = response.getHits();
+        System.out.println("333");
+        System.out.println(keyword);
+        for ( SearchHit hit : hits ) {
+            System.out.println(hit.getSourceAsMap());
+        }
 
         for (SearchHit hit : hits) {
+
+
             DiscussPost post = new DiscussPost();
 
             String id = hit.getSourceAsMap().get("id").toString();
-            post.setId(Integer.valueOf(id));
+            //post.setId(Integer.valueOf(id));
 
-            String userId = hit.getSourceAsMap().get("userId").toString();
+            post = discussPostMapper.selectDiscussPostById(Integer.valueOf(id));
+
+           /* String userId = hit.getSourceAsMap().get("userId").toString();
             post.setUserId(Integer.valueOf(userId));
 
             String title = hit.getSourceAsMap().get("title").toString();
@@ -198,11 +208,11 @@ public class ElasticsearchService {
             post.setContent(content);
 
             String status = hit.getSourceAsMap().get("status").toString();
-            post.setStatus(Integer.valueOf(status));
+            post.setStatus(Integer.valueOf(status));*/
 
-            String createTime = hit.getSourceAsMap().get("createTime").toString();
+            /*String createTime = hit.getSourceAsMap().get("createTime").toString();
             post.setCreateTime(new Date(Long.valueOf(createTime)));
-
+*/
             String commentCount = hit.getSourceAsMap().get("commentCount").toString();
             post.setCommentCount(Integer.valueOf(commentCount));
 
@@ -210,6 +220,8 @@ public class ElasticsearchService {
             HighlightField titleField = hit.getHighlightFields().get("title");
             if (titleField != null) {
                 post.setTitle(titleField.getFragments()[0].toString());
+
+
             }
 
             HighlightField contentField = hit.getHighlightFields().get("content");
@@ -221,6 +233,9 @@ public class ElasticsearchService {
         }
        // PageImpl(List<T> content, Pageable pageable, long total)
         //Page<DiscussPost> pageResult=(Page<DiscussPost>) list;
+        for (DiscussPost discussPost : list) {
+            System.out.println(discussPost);
+        }
         return list;
 
     }
