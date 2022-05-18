@@ -1,6 +1,5 @@
 package com.nowcoder.community.controller;
 
-import com.github.pagehelper.PageInfo;
 import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.service.ElasticsearchService;
@@ -43,11 +42,13 @@ public class SearchController {
     // search?keyword=xxx
     @RequestMapping(path = "/search", method = RequestMethod.GET)
     public String search(String keyword, Page page, Model model) throws IOException {
-        System.out.println("111");
+       // System.out.println("111");
         // 搜索帖子
         //org.springframework.data.domain.Page<DiscussPost> searchResults = elasticsearchService.searchDiscussPost(keyword, page.getCurrent() - 1, page.getLimit());
-        List<DiscussPost> searchResults  = elasticsearchService.searchDiscussPost(keyword, page.getCurrent() - 1, page.getLimit());
-        System.out.println("222");
+        //Map<String, Object> mp = elasticsearchService.searchDiscussPost(keyword);
+        List<DiscussPost> searchResults  = elasticsearchService.searchDiscussPost(keyword, page.getCurrent() - 1, page.getLimit());//(List<DiscussPost>) mp.get("list");
+        //System.out.println(searchResults.size());
+       // System.out.println("222");
         // 聚合数据
         List<Map<String, Object>> discussPosts = new ArrayList<>();
         if (searchResults != null) {
@@ -68,11 +69,15 @@ public class SearchController {
         model.addAttribute("discussPosts", discussPosts);
         model.addAttribute("keyword", keyword);
 
-        page.setPath("search?keyword=" + keyword);
+        //page.setLimit(5);
+
+        page.setPath("/search?keyword=" + keyword);
 
 
         //page.setRows(searchResults == null ? 0 : (int) searchResults.size());//getTotalElements
-        page.setRows(searchResults == null ? 0 : (int) elasticsearchService.searchDiscussPosts(keyword));
+       page.setRows(searchResults == null ? 0 : (int) elasticsearchService.searchDiscussPosts(keyword));
+        //System.out.println((int) elasticsearchService.searchDiscussPosts(keyword));
+        //page.setRows(searchResults == null ? 0 : (int) mp.get("size"));
 
         return "/site/search";
     }

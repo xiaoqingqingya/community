@@ -1,8 +1,8 @@
-/*$(function(){
+$(function(){
     $("#topBtn").click(setTop);
     $("#wonderfulBtn").click(setWonderful);
     $("#deleteBtn").click(setDelete);
-});*/
+});
 
 function like(btn, entityType, entityId, entityUserId, postId) {
     $.post(
@@ -20,7 +20,7 @@ function like(btn, entityType, entityId, entityUserId, postId) {
     );
 }
 
-/*// 置顶
+// 置顶
 function setTop() {
     $.post(
         CONTEXT_PATH + "/discuss/top",
@@ -34,9 +34,9 @@ function setTop() {
             }
         }
     );
-}*/
+}
 
-/*// 加精
+// 加精
 function setWonderful() {
     $.post(
         CONTEXT_PATH + "/discuss/wonderful",
@@ -50,8 +50,7 @@ function setWonderful() {
             }
         }
     );
-}*/
-/*
+}
 
 // 删除
 function setDelete() {
@@ -67,4 +66,4 @@ function setDelete() {
             }
         }
     );
-}*/
+}

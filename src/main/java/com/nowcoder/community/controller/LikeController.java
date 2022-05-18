@@ -1,19 +1,14 @@
 package com.nowcoder.community.controller;
 
-import com.google.code.kaptcha.Producer;
-//import com.nowcoder.community.entity.Event;
-//import com.nowcoder.community.entity.Event;
+
 import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.entity.User;
-/*import com.nowcoder.community.event.EventProducer;*/
-//import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import com.nowcoder.community.util.RedisKeyUtil;
-import org.apache.ibatis.ognl.ObjectElementsAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -72,11 +67,11 @@ public class LikeController implements CommunityConstant {
                     .setData("postId", postId);
             eventProducer.fireEvent(event);
 
-          /*  if (entityType == ENTITY_TYPE_POST) {
+            if (entityType == ENTITY_TYPE_POST) {
                 // 计算帖子分数
                 String redisKey = RedisKeyUtil.getPostScoreKey();
                 redisTemplate.opsForSet().add(redisKey, postId);
-            }*/
+            }
         }
         return CommunityUtil.getJSONString(0, null, map);
     }

@@ -1,21 +1,19 @@
 package com.nowcoder.community.controller;
 
-import com.google.code.kaptcha.Producer;
+
 import com.nowcoder.community.entity.Comment;
 import com.nowcoder.community.entity.DiscussPost;
-/*import com.nowcoder.community.entity.Event;
-import com.nowcoder.community.event.EventProducer;*/
-//import com.nowcoder.community.entity.Event;
-//import com.nowcoder.community.event.EventProducer;
+
 import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.HostHolder;
-//import com.nowcoder.community.util.RedisKeyUtil;
+
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.data.redis.core.RedisTemplate;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,8 +83,8 @@ public class CommentController implements CommunityConstant {
             eventProducer.fireEvent(event);
 
             // 计算帖子分数
-       /*     String redisKey = RedisKeyUtil.getPostScoreKey();
-            redisTemplate.opsForSet().add(redisKey,discussPostId);*/
+            String redisKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey,discussPostId);
         }
 
         return "redirect:/discuss/detail/" + discussPostId;

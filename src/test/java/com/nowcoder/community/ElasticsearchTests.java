@@ -8,6 +8,7 @@ import com.nowcoder.community.dao.DiscussPostMapper;
 /*import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;*/
 //import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
 //import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
+import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
 import com.nowcoder.community.entity.DiscussPost;
 
 import org.apache.lucene.search.TotalHits;
@@ -22,6 +23,7 @@ import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -60,6 +62,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author coolsen
@@ -81,22 +84,24 @@ public class ElasticsearchTests {
     @Autowired
     private RestHighLevelClient esClient;
 
-//  @Autowired
-//    private DiscussPostRepository discussRepository;
+  @Autowired
+    private DiscussPostRepository discussRepository;
 
 
- /*@Autowired
-    private ElasticsearchTemplate elasticTemplate;*/
+// @Autowired
+//    private ElasticsearchTemplate elasticTemplate;
+    @Autowired
+    private ElasticsearchRestTemplate elasticsearchTemplate;
 
 
-/*    @Test
+   @Test
     public void testInsert() {
         discussRepository.save(discussMapper.selectDiscussPostById(283));
         discussRepository.save(discussMapper.selectDiscussPostById(284));
         discussRepository.save(discussMapper.selectDiscussPostById(285));
     }
 
- @Test
+/* @Test
     public void testInsertList() {
         discussRepository.saveAll(discussMapper.selectDiscussPosts(101, 0, 100));
         discussRepository.saveAll(discussMapper.selectDiscussPosts(102, 0, 100));
@@ -107,9 +112,9 @@ public class ElasticsearchTests {
         discussRepository.saveAll(discussMapper.selectDiscussPosts(132, 0, 100));
         discussRepository.saveAll(discussMapper.selectDiscussPosts(133, 0, 100));
         discussRepository.saveAll(discussMapper.selectDiscussPosts(134, 0, 100));
-    }
+    }*/
 
-
+/*
     @Test
     public void testUpdate() {
         DiscussPost post = discussMapper.selectDiscussPostById(231);
@@ -139,8 +144,7 @@ public class ElasticsearchTests {
      // elasticTemplate.queryForPage(searchQuery, class, SearchResultMapper)
         // 底层获取得到了高亮显示的值, 但是没有返回.
 
-        Page<DiscussPost> page = discussRepository.search(searchQuery);
-        discussRepository.searchSimilar(searchQuery)
+        Page<DiscussPost> page = discussRepository.search(searchQuery);//search(searchQuery);
         System.out.println(page.getTotalElements());
         System.out.println(page.getTotalPages());
         System.out.println(page.getNumber());
@@ -150,109 +154,52 @@ public class ElasticsearchTests {
         }
     }*/
 
-    @Test
+    /*@Test
     public void testSearchByTemplate() throws IOException {
-        SearchRequest request = new SearchRequest();
-        request.indices("discusspost");
-//        request.source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()));
-//        SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
-//        request.source(new SearchSourceBuilder()
-//                .query(QueryBuilders.multiMatchQuery("互联网寒冬", "title", "content"))
-//                .sort("type", SortOrder.DESC)
-//                .sort("score", SortOrder.DESC)
-//                .sort("createTime", SortOrder.DESC));
-//
-//        SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
-
-        // 搜索源构建对象
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        HighlightBuilder highlightBuilder = new HighlightBuilder();
-
-        SearchSourceBuilder builder  = new SearchSourceBuilder()
-                .query(QueryBuilders.multiMatchQuery("互联网寒冬", "title", "content"))
-                .sort(SortBuilders.fieldSort("type").order(SortOrder.DESC))
-                .sort(SortBuilders.fieldSort("score").order(SortOrder.DESC))
-                .sort(SortBuilders.fieldSort("createTime").order(SortOrder.DESC))
-        .from(0).size(10);
-//                .highlighter(
-//                        new HighlightBuilder.Field("content").preTags("<em>").postTags("</em>"),
-//                        new HighlightBuilder.Field("content").preTags("<em>").postTags("</em>"));
-        //.highlighter(new HighlightBuilder().preTags("<font color='red'>").postTags("</font>").field("title").field("content"));
-        highlightBuilder.field(new HighlightBuilder.Field("title"));
-        highlightBuilder.field(new HighlightBuilder.Field("content"));
-
-        // 设置高亮样式
-        highlightBuilder.preTags("<font color='red'>");
-        highlightBuilder.postTags("</font>");
 
 
-        searchSourceBuilder.highlighter(highlightBuilder);
+        //需要查询的字段
+        BoolQueryBuilder boolQueryBuilder= QueryBuilders.boolQuery()
+                .should(QueryBuilders.matchQuery("title","互联网寒冬"))
+                .should(QueryBuilders.matchQuery("content","互联网寒冬"));
+
+        //构建高亮查询
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(boolQueryBuilder)
+                .withSort(SortBuilders.fieldSort("type").order(SortOrder.DESC))
+                .withSort(SortBuilders.fieldSort("score").order(SortOrder.DESC))
+                .withSort(SortBuilders.fieldSort("createTime").order(SortOrder.DESC))
+                .withPageable(PageRequest.of(0, 10))
+                .withHighlightFields(
+                        new HighlightBuilder.Field("title")
+                        ,new HighlightBuilder.Field("content"))
+                .withHighlightBuilder(new HighlightBuilder().preTags("<span style='color:red'>").postTags("</span>"))
+                .build();
+        //查询
+        //SearchHits<DiscussPost> search = elasticsearchTemplate.search(searchQuery, DiscussPost.class);
+        org.springframework.data.elasticsearch.core.SearchHits<DiscussPost> search = elasticsearchTemplate.search(searchQuery, DiscussPost.class);
+
+        //得到查询返回的内容
+        List<org.springframework.data.elasticsearch.core.SearchHit<DiscussPost>> searchHits = search.getSearchHits();
 
 
 
-        request.source(builder);
+
         List<DiscussPost> list = new ArrayList<>();
-        SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
-        SearchHits hits = response.getHits();// getHits
-
-        long totalHits = hits.getTotalHits().value;
-        for ( SearchHit hit : hits ) {
-            System.out.println(hit.getSourceAsString());
+        //遍历返回的内容进行处理
+        for(org.springframework.data.elasticsearch.core.SearchHit<DiscussPost> searchHit:searchHits){
+            //高亮的内容
+            Map<String, List<String>> highlightFields = searchHit.getHighlightFields();
+            //将高亮的内容填充到content中
+            searchHit.getContent().setTitle(highlightFields.get("name")==null ? searchHit.getContent().getTitle():highlightFields.get("name").get(0));
+            searchHit.getContent().setContent(highlightFields.get("info")==null ? searchHit.getContent().getContent():highlightFields.get("info").get(0));
+            //放到实体类中
+            list.add(searchHit.getContent());
+        }
+        for (DiscussPost post : list) {
+            System.out.println(post);
         }
 
-
-        for (SearchHit hit : hits) {
-
-
-            DiscussPost post = new DiscussPost();
-
-            String id = hit.getSourceAsMap().get("id").toString();
-            post.setId(Integer.valueOf(id));
-
-            String userId = hit.getSourceAsMap().get("userId").toString();
-            post.setUserId(Integer.valueOf(userId));
-
-            String title = hit.getSourceAsMap().get("title").toString();
-            post.setTitle(title);
-
-            String content = hit.getSourceAsMap().get("content").toString();
-            post.setContent(content);
-
-            String status = hit.getSourceAsMap().get("status").toString();
-            post.setStatus(Integer.valueOf(status));
-
-            String createTime = hit.getSourceAsMap().get("createTime").toString();
-            post.setCreateTime(new Date(Long.valueOf(createTime)));
-
-            String commentCount = hit.getSourceAsMap().get("commentCount").toString();
-            post.setCommentCount(Integer.valueOf(commentCount));
-
-            // 处理高亮显示的结果
-            HighlightField titleField = hit.getHighlightFields().get("title");
-            if (titleField != null) {
-                post.setTitle(titleField.getFragments()[0].toString());
-
-
-            }
-
-            HighlightField contentField = hit.getHighlightFields().get("content");
-            if (contentField != null) {
-                post.setContent(contentField.getFragments()[0].toString());
-            }
-
-            list.add(post);
-        }
-
-
-
-        System.out.println(totalHits);
-
-        System.out.println(response.getTook());
-
-        System.out.println(list.size());
-        for (DiscussPost discussPost : list) {
-            System.out.println(discussPost);
-        }
-    }
+    }*/
 
 }

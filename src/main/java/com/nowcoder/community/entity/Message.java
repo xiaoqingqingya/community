@@ -11,11 +11,11 @@ import java.util.Date;
  */
 public class Message {
     private int id;
-    private int fromId;
-    private int toId;
-    private String conversationId;
+    private int fromId;//消息的发送人
+    private int toId;//消息的接受者
+    private String conversationId;//两者之间的会话id连接
     private String content;
-    private int status;
+    private int status;//0表示未读，1表示已读，2表示删除
     private Date createTime;
 
     public int getId() {

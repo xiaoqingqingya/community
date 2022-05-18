@@ -53,7 +53,7 @@ public class RedisKeyUtil {
     //某个实体拥有的粉丝，实体可能是用户，或者是帖子
     //follower:entityType:entityId ->zset(userId,date)，存入用户Id
     public static String getFollowerKey(int entityType, int entityId) {
-        return PREFIX_FOLLOWER + SPLIT + entityType + SPLIT + entityType;
+        return PREFIX_FOLLOWER + SPLIT + entityType + SPLIT + entityId;
     }
 
     //登录验证码

@@ -37,13 +37,13 @@ public class CaffeineTests {
         System.out.println(String.format("总时间%dmin",totalTime/(1000*60)));//39min
     }
 
-   /* @Test
+    @Test
     public void testCache() {
 
         System.out.println(postService.findDiscussPosts(0, 0, 10, 1));
         System.out.println(postService.findDiscussPosts(0, 0, 10, 1));
         System.out.println(postService.findDiscussPosts(0, 0, 10, 1));
         System.out.println(postService.findDiscussPosts(0, 0, 10, 0));
-    }*/
+    }
 
 }

@@ -1,4 +1,3 @@
-/*
 package com.nowcoder.community.config;
 
 import com.nowcoder.community.util.CommunityConstant;
@@ -9,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
@@ -19,14 +17,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-*/
 /**
  * @author coolsen
  * @version 1.0.0
  * @ClassName SecurityConfig.java
  * @Description Spring Security Config
- * @createTime 2020/5/20 11:27
- *//*
+ * @createTime 2020/5/20 11:27*/
+
+
 
 
 @Configuration
@@ -61,21 +59,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                         AUTHORITY_ADMIN,
                         AUTHORITY_MODERATOR
                 )
-//                .antMatchers(
-//                        "/discuss/top",
-//                        "/discuss/wonderful"
-//                )
-//                .hasAnyAuthority(
-//                        AUTHORITY_MODERATOR
-//                )
-//                .antMatchers(
-//                        "/discuss/delete",
-//                        "/data/**",
-//                        "/actuator/**"
-//                )
-//                .hasAnyAuthority(
-//                        AUTHORITY_ADMIN
-//                )
+                .antMatchers(
+                        "/discuss/top",
+                        "/discuss/wonderful"
+                )
+                .hasAnyAuthority(
+                        AUTHORITY_MODERATOR
+                )
+                .antMatchers(
+                        "/discuss/delete",
+                        "/data/**",
+                        "/actuator/**"
+                )
+                .hasAnyAuthority(
+                        AUTHORITY_ADMIN
+                )
                 .anyRequest().permitAll()
                 .and().csrf().disable();
 
@@ -117,4 +115,3 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
         http.logout().logoutUrl("/securitylogout");
     }
 }
-*/

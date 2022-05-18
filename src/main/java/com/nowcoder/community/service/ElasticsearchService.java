@@ -1,29 +1,17 @@
 package com.nowcoder.community.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.pagehelper.PageInfo;
+
 import com.nowcoder.community.dao.DiscussPostMapper;
 
-/*import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;*/
-//import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
+
 import com.nowcoder.community.dao.elasticsearch.DiscussPostRepository;
 import com.nowcoder.community.entity.DiscussPost;
-import javafx.scene.canvas.GraphicsContext;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.xcontent.XContentType;
+
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -33,19 +21,14 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-/*import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
-import org.springframework.data.elasticsearch.core.SearchResultMapper;
-import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
-import org.springframework.data.elasticsearch.core.aggregation.impl.AggregatedPageImpl;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
-import org.springframework.data.elasticsearch.core.query.SearchQuery;*/
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -68,6 +51,9 @@ public class ElasticsearchService {
 
     @Autowired
     private DiscussPostMapper discussPostMapper;
+
+    @Autowired
+    private ElasticsearchRestTemplate elasticsearchTemplate;
 
 
     public void saveDiscussPost(DiscussPost post) throws IOException {
@@ -137,19 +123,9 @@ public class ElasticsearchService {
     }
     public List<DiscussPost> searchDiscussPost(String keyword, int current, int limit) throws IOException {
 
-        // 1. 查询索引的所有数据
+/*        // 1. 查询索引的所有数据
         SearchRequest request = new SearchRequest();
         request.indices("discusspost");
-//        request.source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()));
-//        SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
-//        request.source(new SearchSourceBuilder()
-//                .query(QueryBuilders.multiMatchQuery("互联网寒冬", "title", "content"))
-//                .sort("type", SortOrder.DESC)
-//                .sort("score", SortOrder.DESC)
-//                .sort("createTime", SortOrder.DESC));
-//
-//        SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
-
         // 搜索源构建对象
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         HighlightBuilder highlightBuilder = new HighlightBuilder();
@@ -160,10 +136,6 @@ public class ElasticsearchService {
                 .sort(SortBuilders.fieldSort("score").order(SortOrder.DESC))
                 .sort(SortBuilders.fieldSort("createTime").order(SortOrder.DESC))
                 .from(current * limit).size(limit);
-//                .highlighter(
-//                        new HighlightBuilder.Field("content").preTags("<em>").postTags("</em>"),
-//                        new HighlightBuilder.Field("content").preTags("<em>").postTags("</em>"));
-                        //.highlighter(new HighlightBuilder().preTags("<font color='red'>").postTags("</font>").field("title").field("content"));
         highlightBuilder.field(new HighlightBuilder.Field("title"));
         highlightBuilder.field(new HighlightBuilder.Field("content"));
 
@@ -173,20 +145,11 @@ public class ElasticsearchService {
 
         searchSourceBuilder.highlighter(highlightBuilder);
 
-        //意思是从第几条开始查找
-        //searchSourceBuilder.from(current * limit);
-        //查几条
-        //searchSourceBuilder.size(limit);
 
         request.source(builder);
         List<DiscussPost> list = new ArrayList<>();
         SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
         SearchHits hits = response.getHits();
-        System.out.println("333");
-        System.out.println(keyword);
-        for ( SearchHit hit : hits ) {
-            System.out.println(hit.getSourceAsMap());
-        }
 
         for (SearchHit hit : hits) {
 
@@ -198,21 +161,6 @@ public class ElasticsearchService {
 
             post = discussPostMapper.selectDiscussPostById(Integer.valueOf(id));
 
-           /* String userId = hit.getSourceAsMap().get("userId").toString();
-            post.setUserId(Integer.valueOf(userId));
-
-            String title = hit.getSourceAsMap().get("title").toString();
-            post.setTitle(title);
-
-            String content = hit.getSourceAsMap().get("content").toString();
-            post.setContent(content);
-
-            String status = hit.getSourceAsMap().get("status").toString();
-            post.setStatus(Integer.valueOf(status));*/
-
-            /*String createTime = hit.getSourceAsMap().get("createTime").toString();
-            post.setCreateTime(new Date(Long.valueOf(createTime)));
-*/
             String commentCount = hit.getSourceAsMap().get("commentCount").toString();
             post.setCommentCount(Integer.valueOf(commentCount));
 
@@ -230,12 +178,50 @@ public class ElasticsearchService {
             }
 
             list.add(post);
+        }*/
+        //需要查询的字段
+        BoolQueryBuilder boolQueryBuilder= QueryBuilders.boolQuery()
+                .should(QueryBuilders.matchQuery("title",keyword))
+                .should(QueryBuilders.matchQuery("content",keyword));
+
+        //构建高亮查询
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(boolQueryBuilder)
+                .withSort(SortBuilders.fieldSort("type").order(SortOrder.DESC))
+                .withSort(SortBuilders.fieldSort("score").order(SortOrder.DESC))
+                .withSort(SortBuilders.fieldSort("createTime").order(SortOrder.DESC))
+                .withPageable(PageRequest.of(current, limit))//.from(current * limit).size(limit);
+                .withHighlightFields(
+                        new HighlightBuilder.Field("title")
+                        ,new HighlightBuilder.Field("content"))
+                .withHighlightBuilder(new HighlightBuilder().preTags("<span style='color:red'>").postTags("</span>"))
+                .build();
+        //查询
+        //SearchHits<DiscussPost> search = elasticsearchTemplate.search(searchQuery, DiscussPost.class);
+        org.springframework.data.elasticsearch.core.SearchHits<DiscussPost> search = elasticsearchTemplate.search(searchQuery, DiscussPost.class);
+
+        //得到查询返回的内容
+        List<org.springframework.data.elasticsearch.core.SearchHit<DiscussPost>> searchHits = search.getSearchHits();
+
+
+
+        List<DiscussPost> list = new ArrayList<>();
+        //遍历返回的内容进行处理
+        for(org.springframework.data.elasticsearch.core.SearchHit<DiscussPost> searchHit:searchHits){
+            //高亮的内容
+            Map<String, List<String>> highlightFields = searchHit.getHighlightFields();
+            //将高亮的内容填充到content中
+            searchHit.getContent().setTitle(highlightFields.get("name")==null ? searchHit.getContent().getTitle():highlightFields.get("name").get(0));
+            searchHit.getContent().setContent(highlightFields.get("info")==null ? searchHit.getContent().getContent():highlightFields.get("info").get(0));
+            //放到实体类中
+            list.add(searchHit.getContent());
         }
-       // PageImpl(List<T> content, Pageable pageable, long total)
-        //Page<DiscussPost> pageResult=(Page<DiscussPost>) list;
-        for (DiscussPost discussPost : list) {
-            System.out.println(discussPost);
-        }
+        Map<String, Object> map = new HashMap<>();
+
+        //map.put("size", searchHits.size());
+        System.out.println(searchHits.size());
+        //map.put("list",list);
+        //return map;
         return list;
 
     }

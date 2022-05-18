@@ -14,8 +14,8 @@ import java.util.Map;
 public class Event {
 
     private String topic;
-    private int userId;
-    private int entityType;
+    private int userId;//事件是谁发出的
+    private int entityType;//事件发生在哪个实体上
     private int entityId;
     //实体的作者
     private int entityUserId;

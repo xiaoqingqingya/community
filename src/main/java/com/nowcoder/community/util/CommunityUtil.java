@@ -33,7 +33,7 @@ public class CommunityUtil {
                 json.put(key, map.get(key));
             }
         }
-        return json.toJSONString();
+        return json.toJSONString();//将对象转化为Json字符串。
     }
 
     public static String getJSONString(int code, String msg) {

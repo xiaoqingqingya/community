@@ -16,7 +16,7 @@ public class Comment {
     private int entityId;//entityType为1，表示对帖子的评论，则entityId表示对应discuss_post的表格的id；entityType为2，该评论是针对哪一条评论的评论(entityId具体在comment表格里查找id)
     private int targetId;//0表示没有具体回复谁，有具体值表示回复的用户的userid
     private String content;
-    private int status;
+    private int status;//0表示有效
     private Date createTime;
 
     public int getId() {

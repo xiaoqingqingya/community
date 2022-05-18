@@ -14,6 +14,10 @@ import org.springframework.security.core.context.SecurityContextImpl;*/
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;*/
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -48,10 +52,10 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
 
                 // 构建用户认证的结果,并存入SecurityContext,以便于Security进行授权.
                 // principal: 主要信息; credentials: 证书; authorities: 权限;
-              /*  Authentication authentication = new UsernamePasswordAuthenticationToken(
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
                         user, user.getPassword(), userService.getAuthorities(user.getId()));
                 // 存入SecurityContext
-                SecurityContextHolder.setContext(new SecurityContextImpl(authentication));*/
+                SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
             }
         }
 
